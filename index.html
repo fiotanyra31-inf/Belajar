@@ -1,12 +1,352 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kelas Miss Fio</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kuis Informatika - Sistem Komputer</title>
+  <style>
+    :root {
+      --navy: #172554;
+      --blue: #2563eb;
+      --light: #eff6ff;
+      --ink: #1f2937;
+      --muted: #64748b;
+      --green: #15803d;
+      --red: #b91c1c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 28px 16px;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: linear-gradient(135deg, #dbeafe, #f8fafc 55%, #e0e7ff);
+    }
+    .container {
+      width: min(760px, 100%);
+      margin: 0 auto;
+      background: white;
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 18px 50px rgba(30, 64, 175, .14);
+    }
+    header {
+      padding: 30px 26px;
+      color: white;
+      text-align: center;
+      background: linear-gradient(120deg, #172554, #2563eb);
+    }
+    header .symbol { font-size: 42px; margin-bottom: 8px; }
+    header h1 { margin: 0 0 8px; font-size: clamp(24px, 5vw, 32px); }
+    header p { margin: 0; color: #dbeafe; line-height: 1.5; }
+    main { padding: 26px; }
+    .intro { line-height: 1.6; color: #475569; }
+    label { display: block; margin: 18px 0 7px; font-weight: 700; }
+    input[type="text"] {
+      width: 100%; padding: 13px 14px; border: 1px solid #cbd5e1;
+      border-radius: 10px; font-size: 16px;
+    }
+    button {
+      border: 0; border-radius: 10px; padding: 12px 20px;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+      transition: transform .15s, opacity .15s, background .15s;
+    }
+    button:hover { transform: translateY(-1px); }
+    button:disabled { cursor: not-allowed; opacity: .5; transform: none; }
+    .primary { color: white; background: var(--blue); }
+    .primary:hover { background: #1d4ed8; }
+    .secondary { color: var(--navy); background: #e2e8f0; }
+    .full { width: 100%; margin-top: 18px; }
+    .topline {
+      display: flex; justify-content: space-between; gap: 12px;
+      color: var(--muted); font-size: 14px; margin-bottom: 10px;
+    }
+    .progress { height: 9px; border-radius: 99px; background: #e2e8f0; overflow: hidden; }
+    .progress > div { height: 100%; width: 0; background: var(--blue); transition: width .25s; }
+    .question { margin: 25px 0 18px; font-size: 20px; line-height: 1.45; font-weight: 700; }
+    .options { display: grid; gap: 11px; }
+    .option {
+      width: 100%; text-align: left; background: #f8fafc;
+      border: 1.5px solid #cbd5e1; color: var(--ink);
+      padding: 14px 15px; line-height: 1.4; font-weight: 500;
+    }
+    .option:hover:not(:disabled) { border-color: var(--blue); background: var(--light); }
+    .option.selected { border-color: var(--blue); background: #dbeafe; }
+    .option.correct { border-color: #16a34a; background: #dcfce7; }
+    .option.wrong { border-color: #dc2626; background: #fee2e2; }
+    .feedback {
+      display: none; margin-top: 16px; padding: 14px;
+      border-radius: 10px; line-height: 1.5;
+    }
+    .feedback.show { display: block; }
+    .feedback.good { background: #dcfce7; color: #166534; }
+    .feedback.bad { background: #fee2e2; color: #991b1b; }
+    .actions { display: flex; justify-content: flex-end; margin-top: 20px; }
+    .result { text-align: center; }
+    .score { font-size: 52px; font-weight: 800; color: var(--blue); margin: 12px 0; }
+    .result p { line-height: 1.6; color: #475569; }
+    .review { text-align: left; margin-top: 22px; }
+    .review-item { padding: 13px 0; border-top: 1px solid #e2e8f0; line-height: 1.5; }
+    .hidden { display: none !important; }
+    footer { padding: 0 26px 24px; text-align: center; color: #94a3b8; font-size: 12px; }
+    @media (max-width: 520px) {
+      body { padding: 12px 8px; }
+      main { padding: 20px 17px; }
+      header { padding: 25px 18px; }
+      .question { font-size: 18px; }
+    }
+  </style>
 </head>
 <body>
-  <h1>Selamat datang!</h1>
-  <p>Website kelas Informatika.</p>
+  <div class="container">
+    <header>
+      <div class="symbol">💻</div>
+      <h1>Kuis Informatika</h1>
+      <p>Materi: Sistem Komputer · 10 Soal Pilihan Ganda</p>
+    </header>
+
+    <main>
+      <section id="startScreen">
+        <h2>Selamat Datang!</h2>
+        <p class="intro">
+          Uji pemahamanmu tentang sistem komputer. Bacalah setiap soal dengan teliti,
+          kemudian pilih satu jawaban yang paling tepat. Setelah menjawab, kamu akan
+          memperoleh umpan balik dan penjelasan.
+        </p>
+        <label for="studentName">Nama peserta</label>
+        <input id="studentName" type="text" maxlength="60" placeholder="Masukkan nama kamu">
+        <button class="primary full" id="startBtn">Mulai Kuis</button>
+      </section>
+
+      <section id="quizScreen" class="hidden">
+        <div class="topline">
+          <span id="questionCount">Soal 1 dari 10</span>
+          <span id="scoreLive">Skor: 0</span>
+        </div>
+        <div class="progress"><div id="progressBar"></div></div>
+        <div class="question" id="questionText"></div>
+        <div class="options" id="options"></div>
+        <div id="feedback" class="feedback" aria-live="polite"></div>
+        <div class="actions">
+          <button class="primary" id="nextBtn" disabled>Soal Berikutnya</button>
+        </div>
+      </section>
+
+      <section id="resultScreen" class="hidden result">
+        <h2>Kuis Selesai!</h2>
+        <p id="resultName"></p>
+        <div class="score" id="finalScore">0/10</div>
+        <h3 id="resultMessage"></h3>
+        <p id="resultDetail"></p>
+        <div class="review" id="review"></div>
+        <button class="primary full" id="restartBtn">Ulangi Kuis</button>
+      </section>
+    </main>
+    <footer>Belajar Informatika · Sistem Komputer</footer>
+  </div>
+
+  <script>
+    // Silakan ubah pertanyaan, pilihan, dan jawaban pada bagian BANK SOAL ini.
+    const questions = [
+      {
+        question: "Apa yang dimaksud dengan sistem komputer?",
+        options: [
+          "Sekumpulan perangkat yang bekerja sama untuk mengolah data menjadi informasi",
+          "Program yang hanya digunakan untuk mengetik dokumen",
+          "Perangkat untuk menghubungkan komputer ke internet saja",
+          "Kumpulan aplikasi permainan pada komputer"
+        ],
+        answer: 0,
+        explanation: "Sistem komputer merupakan gabungan perangkat keras, perangkat lunak, dan pengguna yang bekerja sama untuk mengolah data menjadi informasi."
+      },
+      {
+        question: "Tiga komponen utama dalam sistem komputer adalah ...",
+        options: [
+          "Monitor, keyboard, dan mouse",
+          "Hardware, software, dan brainware",
+          "Internet, listrik, dan meja komputer",
+          "Input, internet, dan aplikasi"
+        ],
+        answer: 1,
+        explanation: "Komponen utama sistem komputer terdiri atas hardware (perangkat keras), software (perangkat lunak), dan brainware (pengguna)."
+      },
+      {
+        question: "Perangkat berikut yang termasuk perangkat masukan (input device) adalah ...",
+        options: ["Monitor", "Printer", "Keyboard", "Speaker"],
+        answer: 2,
+        explanation: "Keyboard digunakan untuk memasukkan huruf, angka, dan perintah ke komputer sehingga termasuk perangkat input."
+      },
+      {
+        question: "Komponen komputer yang bertugas mengolah instruksi dan data adalah ...",
+        options: ["CPU", "Monitor", "Scanner", "Speaker"],
+        answer: 0,
+        explanation: "CPU (Central Processing Unit) menjalankan instruksi dan memproses data dalam komputer."
+      },
+      {
+        question: "Manakah yang termasuk perangkat keluaran (output device)?",
+        options: ["Mouse", "Microphone", "Scanner", "Printer"],
+        answer: 3,
+        explanation: "Printer menghasilkan keluaran berupa cetakan di kertas, sehingga termasuk perangkat output."
+      },
+      {
+        question: "Perangkat lunak yang mengatur kerja perangkat keras dan menjadi penghubung pengguna dengan komputer disebut ...",
+        options: ["Sistem operasi", "Aplikasi pengolah gambar", "Peramban web", "Program presentasi"],
+        answer: 0,
+        explanation: "Sistem operasi mengelola sumber daya komputer dan menyediakan layanan bagi aplikasi serta pengguna."
+      },
+      {
+        question: "Manakah contoh media penyimpanan data yang tetap menyimpan data meskipun komputer dimatikan?",
+        options: ["RAM", "Register CPU", "SSD", "Cache CPU"],
+        answer: 2,
+        explanation: "SSD merupakan media penyimpanan sekunder nonvolatile, sehingga data tetap tersimpan ketika komputer dimatikan."
+      },
+      {
+        question: "Fungsi utama RAM pada komputer adalah ...",
+        options: [
+          "Mencetak dokumen",
+          "Menyimpan sementara data dan instruksi yang sedang digunakan",
+          "Menampilkan gambar ke layar",
+          "Menghubungkan komputer ke jaringan"
+        ],
+        answer: 1,
+        explanation: "RAM menyimpan sementara data dan instruksi yang sedang diproses. Isinya umumnya hilang ketika daya komputer dimatikan."
+      },
+      {
+        question: "Seorang siswa mengetik tugas menggunakan aplikasi pengolah kata. Dalam kegiatan tersebut, aplikasi pengolah kata termasuk ...",
+        options: ["Hardware", "Brainware", "Software", "Perangkat output"],
+        answer: 2,
+        explanation: "Aplikasi pengolah kata adalah perangkat lunak (software) yang membantu pengguna membuat dan mengedit dokumen."
+      },
+      {
+        question: "Urutan sederhana proses kerja komputer yang tepat adalah ...",
+        options: [
+          "Output – Input – Process",
+          "Process – Output – Input",
+          "Input – Process – Output",
+          "Input – Output – Process"
+        ],
+        answer: 2,
+        explanation: "Komputer menerima data melalui input, mengolahnya pada tahap process, lalu menyajikan hasil melalui output."
+      }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let selectedAnswer = null;
+    let answered = false;
+    let student = "";
+    const results = [];
+
+    const startScreen = document.getElementById("startScreen");
+    const quizScreen = document.getElementById("quizScreen");
+    const resultScreen = document.getElementById("resultScreen");
+    const questionText = document.getElementById("questionText");
+    const optionsBox = document.getElementById("options");
+    const feedback = document.getElementById("feedback");
+    const nextBtn = document.getElementById("nextBtn");
+
+    document.getElementById("startBtn").addEventListener("click", () => {
+      student = document.getElementById("studentName").value.trim() || "Peserta";
+      startScreen.classList.add("hidden");
+      quizScreen.classList.remove("hidden");
+      showQuestion();
+    });
+
+    function showQuestion() {
+      answered = false;
+      selectedAnswer = null;
+      const q = questions[currentQuestion];
+      document.getElementById("questionCount").textContent =
+        `Soal ${currentQuestion + 1} dari ${questions.length}`;
+      document.getElementById("scoreLive").textContent = `Skor: ${score}`;
+      document.getElementById("progressBar").style.width =
+        `${(currentQuestion / questions.length) * 100}%`;
+      questionText.textContent = q.question;
+      optionsBox.innerHTML = "";
+      feedback.className = "feedback";
+      feedback.textContent = "";
+      nextBtn.disabled = true;
+      nextBtn.textContent = currentQuestion === questions.length - 1
+        ? "Lihat Hasil" : "Soal Berikutnya";
+
+      q.options.forEach((option, index) => {
+        const button = document.createElement("button");
+        button.className = "option";
+        button.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
+        button.addEventListener("click", () => chooseAnswer(index));
+        optionsBox.appendChild(button);
+      });
+    }
+
+    function chooseAnswer(index) {
+      if (answered) return;
+      answered = true;
+      selectedAnswer = index;
+      const q = questions[currentQuestion];
+      const correct = index === q.answer;
+      if (correct) score++;
+
+      results.push({ selected: index, correct: q.answer });
+      [...optionsBox.children].forEach((button, i) => {
+        button.disabled = true;
+        if (i === q.answer) button.classList.add("correct");
+        if (i === index && !correct) button.classList.add("wrong");
+      });
+
+      feedback.className = `feedback show ${correct ? "good" : "bad"}`;
+      feedback.textContent = `${correct ? "✓ Jawaban benar! " : "✗ Belum tepat. "}${q.explanation}`;
+      document.getElementById("scoreLive").textContent = `Skor: ${score}`;
+      nextBtn.disabled = false;
+    }
+
+    nextBtn.addEventListener("click", () => {
+      currentQuestion++;
+      if (currentQuestion < questions.length) {
+        showQuestion();
+      } else {
+        showResult();
+      }
+    });
+
+    function showResult() {
+      quizScreen.classList.add("hidden");
+      resultScreen.classList.remove("hidden");
+      document.getElementById("progressBar").style.width = "100%";
+      const percentage = Math.round((score / questions.length) * 100);
+      document.getElementById("resultName").textContent = `Nama peserta: ${student}`;
+      document.getElementById("finalScore").textContent = `${score}/${questions.length}`;
+      document.getElementById("resultDetail").textContent =
+        `Nilai: ${percentage} · Jawaban benar: ${score} · Jawaban belum tepat: ${questions.length - score}`;
+      document.getElementById("resultMessage").textContent =
+        percentage >= 80 ? "Hebat! Pemahamanmu sangat baik." :
+        percentage >= 60 ? "Bagus! Terus tingkatkan pemahamanmu." :
+        "Tetap semangat! Pelajari kembali materi sistem komputer.";
+
+      const review = document.getElementById("review");
+      review.innerHTML = "<h3>Pembahasan Jawaban</h3>";
+      questions.forEach((q, i) => {
+        const item = document.createElement("div");
+        item.className = "review-item";
+        const isCorrect = results[i].selected === q.answer;
+        item.innerHTML = `<strong>Soal ${i + 1} — ${isCorrect ? "Benar" : "Belum tepat"}</strong><br>`;
+        const detail = document.createElement("span");
+        detail.textContent = `Jawaban benar: ${String.fromCharCode(65 + q.answer)}. ${q.options[q.answer]}. ${q.explanation}`;
+        item.appendChild(detail);
+        review.appendChild(item);
+      });
+    }
+
+    document.getElementById("restartBtn").addEventListener("click", () => {
+      currentQuestion = 0;
+      score = 0;
+      selectedAnswer = null;
+      answered = false;
+      results.length = 0;
+      resultScreen.classList.add("hidden");
+      startScreen.classList.remove("hidden");
+      document.getElementById("studentName").value = "";
+    });
+  </script>
 </body>
 </html>
